@@ -98,16 +98,6 @@ If there are errors the form stays open and shows them; otherwise the computer i
 - "Computer not found" and "Page not found" views for bad URLs.
 - Responsive layout: table on wide screens, stacked cards under 900px.
 
-## Screenshots
-
-| Home | Computers |
-|---|---|
-| ![Home](imgs/home-screen.png) | ![Computers](imgs/computers.png) |
-
-| Add computer | About |
-|---|---|
-| ![Add computer](imgs/add-computer.png) | ![About](imgs/about.png) |
-
 ## Testing
 
 Tests are in `frontend/src/test/` (Vitest + React Testing Library): `AssetContext.test.jsx` covers the data operations and `App.test.jsx` covers navigation, the list, the form and validation. Run them with `npm test` in `frontend/`.
