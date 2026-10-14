@@ -323,7 +323,8 @@ form .field-grid {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  text-align: center;
   gap: 0.5rem 1rem;
   padding: 1rem clamp(0.75rem, 3vw, 2rem);
   font-size: 0.85rem;
