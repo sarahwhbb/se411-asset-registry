@@ -45,6 +45,11 @@ npm run lint     # lint the code
 npm run build    # production build into dist/
 ```
 
+## Documentation
+
+- [docs/architecture.md](docs/architecture.md): component tree, state management, tech stack, features
+- [docs/requirements.md](docs/requirements.md): fields, user stories, pages, validation rules
+
 ## Computer fields
 
 `assetTag`, `brand`, `model`, `serialNumber`, `purchaseDate`, `status` (In use / In stock / Repair / Retired), `assignedTo`, `price` (SAR).
