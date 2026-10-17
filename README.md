@@ -29,10 +29,11 @@ React 19, Vite, React Router, Vitest + React Testing Library, oxlint.
 
 ## Getting started
 
-Requires Node.js 24 (LTS) or later.
+Requires Node.js 22.12 or later (Node 24 LTS recommended) and npm.
 
 ```bash
-cd frontend
+git clone https://github.com/sarahwhbb/se411-asset-registry.git
+cd se411-asset-registry/frontend
 npm install
 npm run dev      # http://localhost:5173
 ```
@@ -47,7 +48,7 @@ npm run build    # production build into dist/
 
 ## Documentation
 
-- [docs/architecture.md](docs/architecture.md): component tree, state management, tech stack, features
+- [docs/architecture.md](docs/architecture.md): component tree, state management, tech stack, features, tests
 - [docs/requirements.md](docs/requirements.md): fields, user stories, pages, validation rules
 
 ## Computer fields
@@ -60,8 +61,8 @@ npm run build    # production build into dist/
 frontend/src/
 ├── data/         seed data and status list
 ├── context/      AssetContext (in-memory state: add, update, delete, get)
-├── components/   NavBar
-├── pages/        AssetList, AssetForm (add and edit), About
+├── components/   NavBar, Footer
+├── pages/        Home, AssetList, AssetForm (add and edit), About
 ├── utils/        form validation
 └── test/         Vitest tests
 ```

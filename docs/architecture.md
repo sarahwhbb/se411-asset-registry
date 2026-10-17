@@ -36,7 +36,7 @@ main.jsx
 
 | Component | Responsibility |
 |---|---|
-| `AssetProvider` | Holds the list of computers in state and exposes the data operations to the whole tree. |
+| `AssetProvider` | Holds the list of computers in state and exposes the data operations to the whole tree. The context object and the `useAssets()` hook live in `assetContextValue.js`. |
 | `App` | Page layout: navigation bar, routed content, footer. |
 | `NavBar` | Menu on every page (Home, Computers, Add Computer, About) using `NavLink` to highlight the current page. |
 | `Footer` | Course, project name and GitHub link on every page. |
@@ -100,7 +100,14 @@ If there are errors the form stays open and shows them; otherwise the computer i
 
 ## Testing
 
-Tests are in `frontend/src/test/` (Vitest + React Testing Library): `AssetContext.test.jsx` covers the data operations and `App.test.jsx` covers navigation, the list, the form and validation. Run them with `npm test` in `frontend/`.
+Tests are in `frontend/src/test/` (Vitest + React Testing Library, jsdom). Run them with `npm test` in `frontend/`.
+
+| File | Covers |
+|---|---|
+| `AssetContext.test.jsx` | the data operations (add, update, delete, get) |
+| `App.test.jsx` | navigation, footer, About, list, delete confirmation, add and edit form |
+| `validate.test.js` | every validation rule in `utils/validate.js` (future date, price ≤ 0, duplicate tag in any casing, editing with the computer's own tag) |
+| `Home.test.jsx` | status counts on `/` match the seed data |
 
 ## Planned Part 2
 
