@@ -16,9 +16,15 @@ const emptyForm = {
 }
 
 export default function AssetForm() {
+  const { loading } = useAssets()
+  if (loading) return <p>Loading…</p>
+  return <AssetFormFields />
+}
+
+function AssetFormFields() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { assets, getAsset, addAsset, updateAsset } = useAssets()
+  const { assets, error, getAsset, addAsset, updateAsset } = useAssets()
 
   const editingId = id === undefined ? null : Number(id)
   const existing = editingId === null ? null : getAsset(editingId)
@@ -42,7 +48,7 @@ export default function AssetForm() {
     setValues((v) => ({ ...v, [name]: value }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const found = validate(values, assets, editingId)
     setErrors(found)
@@ -58,9 +64,8 @@ export default function AssetForm() {
       price: Number(values.price),
     }
 
-    if (editingId === null) addAsset(clean)
-    else updateAsset(editingId, clean)
-    navigate('/computers')
+    const saved = editingId === null ? await addAsset(clean) : await updateAsset(editingId, clean)
+    if (saved) navigate('/computers')
   }
 
   const field = (name, label, props = {}) => (
@@ -78,6 +83,11 @@ export default function AssetForm() {
   return (
     <section>
       <h1>{editingId === null ? 'Add Computer' : `Edit ${existing.assetTag}`}</h1>
+      {error && (
+        <p className="error" role="alert">
+          {error}
+        </p>
+      )}
       <form onSubmit={handleSubmit} noValidate>
         <div className="field-grid">
         {field('assetTag', 'Asset tag *', { placeholder: 'PC-0007' })}

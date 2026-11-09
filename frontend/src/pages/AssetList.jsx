@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useAssets } from '../context/assetContextValue'
 
 export default function AssetList() {
-  const { assets, deleteAsset } = useAssets()
+  const { assets, loading, error, deleteAsset } = useAssets()
 
   const handleDelete = (asset) => {
     if (window.confirm(`Delete ${asset.assetTag} (${asset.brand} ${asset.model})?`)) {
@@ -19,7 +19,15 @@ export default function AssetList() {
         </Link>
       </div>
 
-      {assets.length === 0 ? (
+      {error && (
+        <p className="error" role="alert">
+          {error}
+        </p>
+      )}
+
+      {loading ? (
+        <p>Loading…</p>
+      ) : assets.length === 0 ? (
         <p className="empty">No computers registered yet.</p>
       ) : (
         <div className="table-wrap">
