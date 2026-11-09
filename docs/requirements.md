@@ -98,7 +98,7 @@ A menu is shown on every page, and a footer (course, project name, GitHub link) 
 
 - Responsive: the list is a table on wide screens and stacked cards under 900px.
 - Light theme only (warm orange and cream).
-- Part 1 data lives in memory (React context), starting from 6 seed computers; no database. Changes reset on reload.
+- Part 1 kept data in memory (React context). In Part 2 the data lives in the Spring Boot backend (in-memory H2), so it resets when the backend restarts and the list starts empty.
 - Tests: `npm test` in `frontend/` must pass (Vitest + React Testing Library).
 - Part 2 replaces it with a Spring Boot REST API (H2 database):
 

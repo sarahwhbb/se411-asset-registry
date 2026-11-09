@@ -1,6 +1,6 @@
 # Frontend
 
-React frontend for the SE411 Computer Asset Registry. Data is held in memory (no backend yet), so changes reset on page reload.
+React frontend for the SE411 Computer Asset Registry. Data comes from the Spring Boot backend at `http://localhost:8080/api/assets`, so start the backend (`mvn spring-boot:run` in `backend/`) before using the app. The backend keeps data in memory (H2), so it resets when the backend restarts.
 
 ## Scripts
 
@@ -30,14 +30,14 @@ npm run preview     # serve the production build locally
 
 ```
 src/
-├── data/         seed computers and status list
-├── context/      AssetContext: in-memory state (add, update, delete, get)
+├── data/         status list
+├── context/      AssetContext: REST calls (load, add, update, delete) plus loading and error state
 ├── components/   NavBar, Footer
 ├── pages/        Home, AssetList, AssetForm (add and edit), About
 ├── utils/        validate.js (form validation)
 └── test/         Vitest + React Testing Library tests
 ```
 
-Components read and change data only through the `useAssets()` hook, so switching to a REST backend later means changing `AssetContext.jsx` only.
+Components read and change data only through the `useAssets()` hook; `AssetContext.jsx` is the only file that calls the backend. The tests mock `fetch`, so `npm test` does not need the backend running.
 
 See the [root README](../README.md) for the team, features and tech stack.

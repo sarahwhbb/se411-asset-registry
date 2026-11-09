@@ -1,6 +1,6 @@
-# Architecture: Computer Asset Registry (Part 1 frontend)
+# Architecture: Computer Asset Registry
 
-A single-page React app for managing a company's computers (add, view, edit, delete). In Part 1 all data lives in browser memory; Part 2 will replace that with a Spring Boot REST API.
+A single-page React app for managing a company's computers (add, view, edit, delete). Part 1 built the frontend with data in browser memory. In Part 2 the data lives behind a Spring Boot REST API (H2 database), and the frontend talks to it with `fetch`.
 
 ## Tech stack
 
@@ -10,6 +10,7 @@ A single-page React app for managing a company's computers (add, view, edit, del
 | Build tool / dev server | Vite 8 |
 | Routing | react-router-dom 7 |
 | State | React Context + `useState` (no external state library) |
+| Backend | Java 21, Spring Boot 4, Spring Web, Spring Data JPA, H2, Maven |
 | Styling | Plain CSS with variables (`index.css`, `App.css`), light theme only |
 | Tests | Vitest, React Testing Library, jsdom |
 | Lint | oxlint |
@@ -20,7 +21,7 @@ A single-page React app for managing a company's computers (add, view, edit, del
 main.jsx
 └── StrictMode
     └── BrowserRouter
-        └── AssetProvider            (context/AssetContext.jsx: owns all data)
+        └── AssetProvider            (context/AssetContext.jsx: owns all data, talks to the API)
             └── App                  (App.jsx: layout and routes)
                 ├── NavBar           (components/NavBar.jsx)
                 ├── <main>
@@ -36,45 +37,45 @@ main.jsx
 
 | Component | Responsibility |
 |---|---|
-| `AssetProvider` | Holds the list of computers in state and exposes the data operations to the whole tree. The context object and the `useAssets()` hook live in `assetContextValue.js`. |
+| `AssetProvider` | Loads the computers from the REST API, keeps them in state and exposes the data operations (plus `loading` and `error`) to the whole tree. The context object and the `useAssets()` hook live in `assetContextValue.js`. |
 | `App` | Page layout: navigation bar, routed content, footer. |
 | `NavBar` | Menu on every page (Home, Computers, Add Computer, About) using `NavLink` to highlight the current page. |
 | `Footer` | Course, project name and GitHub link on every page. |
 | `Home` | Overview: total number of computers and a count per status. |
-| `AssetList` | Table of all computers with status badges, Edit link and Delete button (with a confirmation). |
-| `AssetForm` | One form for both adding and editing. Edit mode is chosen when the URL has an `:id`. Validates on submit. |
+| `AssetList` | Table of all computers with status badges, Edit link and Delete button (with a confirmation). Shows a loading message and any error. |
+| `AssetForm` | One form for both adding and editing. Edit mode is chosen when the URL has an `:id`. Validates on submit, waits for the save to finish and stays open with an error if it fails. |
 | `About` | Team members (name and student ID). |
 
 ## State management
 
-All application data is a single array of computers inside `AssetProvider`.
+The frontend holds a copy of the computers in a single array inside `AssetProvider`; the backend is the source of truth.
 
-- **Storage:** `useState(initialAssets)`. Seed data comes from `data/assets.js` (6 computers). Data resets when the page is reloaded.
-- **Access:** components call the `useAssets()` hook (`context/assetContextValue.js`), which returns `{ assets, addAsset, updateAsset, deleteAsset, getAsset }`. No component touches the state array directly.
-- **Operations:**
-  - `addAsset(asset)`: assigns `id` = highest existing id + 1 and appends.
-  - `updateAsset(id, changes)`: merges changes into the matching computer; the id cannot change.
-  - `deleteAsset(id)`: removes the computer.
-  - `getAsset(id)`: finds one computer (used by edit mode).
+- **Storage:** `useState([])`, filled on mount by `GET http://localhost:8080/api/assets?page=0&size=1000`. The list response is a Spring `Page`, so the provider reads `.content`. If the request fails, `error` is set and the list pages show a message.
+- **Access:** components call the `useAssets()` hook (`context/assetContextValue.js`), which returns `{ assets, loading, error, addAsset, updateAsset, deleteAsset, getAsset }`. No component touches the state array directly.
+- **Operations** (each returns a promise that resolves to `true` on success, or sets `error` and resolves to `false`):
+  - `addAsset(asset)`: `POST /api/assets`; the backend assigns the `id`, and the saved computer from the response is appended.
+  - `updateAsset(id, changes)`: `PUT /api/assets/{id}`; the response replaces the matching computer.
+  - `deleteAsset(id)`: `DELETE /api/assets/{id}`; the computer is removed from the list.
+  - `getAsset(id)`: finds one computer in the loaded list (used by edit mode); synchronous.
 - **Local state:** `AssetForm` keeps its own form values and validation errors in `useState`; they are not shared.
 - **Derived data:** `Home` computes status counts from `assets` on render.
-- **Why this shape:** `useAssets()` is the only data layer. In Part 2, replacing the state operations with `fetch` calls to the REST API means changing `AssetContext.jsx`; the pages stay the same (apart from reading `.content` from the paginated list response).
+- **Why this shape:** `useAssets()` is the only data layer. Moving from in-memory state to the REST API changed `AssetContext.jsx`; the pages only gained loading and error handling.
 
 ## Data model
 
-Field names are camelCase and must match the Part 2 JPA entity exactly.
+Field names are camelCase and match the JPA entity exactly.
 
 | Field | Type | Notes |
 |---|---|---|
-| `id` | number | generated by the app |
+| `id` | number | generated by the backend |
 | `assetTag` | string | unique, case-insensitive |
 | `brand` | string | |
 | `model` | string | |
 | `serialNumber` | string | |
-| `purchaseDate` | string (`YYYY-MM-DD`) | not in the future |
+| `purchaseDate` | string (`YYYY-MM-DD`) | not in the future; `LocalDate` in the entity |
 | `status` | string | In use, In stock, Repair, Retired |
 | `assignedTo` | string | optional |
-| `price` | number | greater than 0, in SAR |
+| `price` | number | greater than 0, in SAR; `Double` in the entity |
 
 ## Validation (`utils/validate.js`)
 
@@ -85,7 +86,7 @@ Runs when the form is submitted and returns an error message per field:
 - Purchase date cannot be in the future.
 - Price must be greater than 0.
 
-If there are errors the form stays open and shows them; otherwise the computer is saved and the app returns to `/computers`.
+Validation runs in the frontend only. If there are errors the form stays open and shows them; otherwise the computer is sent to the backend, and the app returns to `/computers` once the save succeeds.
 
 ## Features
 
@@ -96,6 +97,7 @@ If there are errors the form stays open and shows them; otherwise the computer i
 - Delete with confirmation.
 - About page with the team members.
 - "Computer not found" and "Page not found" views for bad URLs.
+- Loading message and error banner when the backend is slow or unavailable.
 - Responsive layout: table on wide screens, stacked cards under 900px.
 
 ## Testing
@@ -104,12 +106,46 @@ Tests are in `frontend/src/test/` (Vitest + React Testing Library, jsdom). Run t
 
 | File | Covers |
 |---|---|
-| `AssetContext.test.jsx` | the data operations (add, update, delete, get) |
-| `App.test.jsx` | navigation, footer, About, list, delete confirmation, add and edit form |
-| `validate.test.js` | every validation rule in `utils/validate.js` (future date, price ≤ 0, duplicate tag in any casing, editing with the computer's own tag) |
-| `Home.test.jsx` | status counts on `/` match the seed data |
+| `AssetApi.test.jsx` | the data layer against a mocked `fetch`: load from `.content`, POST, PUT, DELETE |
+| `App.test.jsx` | navigation, footer, About, home counts, list, delete confirmation, add and edit form, backend-down errors, and the validation rules in `utils/validate.js`; uses a small in-memory fake of the backend |
 
-## Planned Part 2
+The frontend tests mock `fetch`, so they do not need the backend running.
 
-Spring Boot (Java 21, Maven) with Spring Web, Spring Data JPA and H2:
-`Asset` entity → `AssetRepository` → `AssetService` → REST controller, exposing `POST /api/assets`, `GET /api/assets/{id}`, `GET /api/assets?page=&size=`, `PUT /api/assets/{id}` and `DELETE /api/assets/{id}`. The controller needs CORS enabled for `http://localhost:5173`.
+## Backend (Part 2)
+
+Spring Boot (Java 21, Maven) with Spring Web, Spring Data JPA and an in-memory H2 database, in `backend/src/main/java/edu/psu/se411/backend/`:
+
+```
+AssetController  →  AssetService  →  AssetRepository  →  H2
+   (REST, JSON)      (logic, 404s)    (Spring Data JPA)
+```
+
+| Class | Responsibility |
+|---|---|
+| `Asset` | JPA entity with the nine fields above; `id` is generated by the database. |
+| `AssetRepository` | `JpaRepository<Asset, Long>`: save, find, paged find, delete. |
+| `AssetService` | Create, get, list (paged), update, delete. Throws `AssetNotFoundException` for an unknown id. |
+| `AssetNotFoundException` | Annotated `@ResponseStatus(NOT_FOUND)`, so the API answers 404. |
+| `AssetController` | The five routes below. `@CrossOrigin` allows `http://localhost:5173`. |
+
+| Method | Route | Purpose | Success |
+|---|---|---|---|
+| POST | `/api/assets` | add | 201 + saved asset |
+| GET | `/api/assets/{id}` | find by id | 200, or 404 |
+| GET | `/api/assets?page=&size=` | paginated list (`Page`: `content`, `totalPages`, ...), defaults page 0 and size 10 | 200 |
+| PUT | `/api/assets/{id}` | update | 200 + saved asset, or 404 |
+| DELETE | `/api/assets/{id}` | delete (added beyond the four routes in the brief, to match the frontend delete feature) | 204, or 404 |
+
+### Backend tests
+
+Run `mvn test` in `backend/`.
+
+| File | Covers |
+|---|---|
+| `AssetServiceTest` | JUnit + Mockito with the repository mocked: create, get, list, update, delete and the not-found cases |
+| `AssetControllerTest` | `@WebMvcTest` + MockMvc with the service mocked: every route, status codes (201, 204, 404), the `Page` JSON and the CORS header |
+| `BackendApplicationTests` | the application context starts |
+
+### Running both
+
+Start the backend (`mvn spring-boot:run` in `backend/`, port 8080), then the frontend (`npm run dev` in `frontend/`, port 5173). The H2 database is in memory, so data is lost when the backend stops.
