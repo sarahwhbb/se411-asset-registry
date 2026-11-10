@@ -71,8 +71,34 @@ Base URL `http://localhost:8080/api/assets` (CORS allows `http://localhost:5173`
 | PUT | `/api/assets/{id}` | update (404 if missing) |
 | DELETE | `/api/assets/{id}` | delete (204, 404 if missing) |
 
+## Backend
+
+The backend (`backend/`) is a Spring Boot application that stores the computers in an in-memory H2 database and exposes them through the REST API above. The frontend calls it with `fetch`; see [backend/README.md](backend/README.md) for commands and details.
+
+Requests flow through four layers:
+
+```
+AssetController  →  AssetService  →  AssetRepository  →  H2
+ (REST, JSON)        (logic, 404s)    (Spring Data JPA)
+```
+
+- **`Asset`** is the JPA entity. Its fields match the frontend exactly (see Computer fields below); the database generates the `id`.
+- **`AssetRepository`** extends `JpaRepository<Asset, Long>`, which provides save, find, paged find and delete without extra code.
+- **`AssetService`** holds the logic. Unknown ids throw `AssetNotFoundException`, which Spring turns into an HTTP 404.
+- **`AssetController`** maps the five routes. The list route builds a page from the `page` and `size` parameters and returns a Spring `Page`, so the frontend reads `.content`. `@CrossOrigin` allows the Vite dev server at `http://localhost:5173`.
+
+Notes:
+
+- Data is lost when the backend stops, and the list starts empty.
+- Validation (required fields, unique asset tag, no future purchase date, price above 0) happens in the frontend form only.
+- `DELETE /api/assets/{id}` goes beyond the four routes in the course brief; it is there so the frontend delete feature works.
+
+Tests (`mvn test` in `backend/`): a JUnit + Mockito test for `AssetService` with the repository mocked, and a `@WebMvcTest` + MockMvc test for `AssetController` with the service mocked.
+
 ## Documentation
 
+- [backend/README.md](backend/README.md): backend commands, REST API, structure, tests
+- [frontend/README.md](frontend/README.md): frontend scripts, routes, structure
 - [docs/architecture.md](docs/architecture.md): component tree, data layer, backend layers, tech stack, features, tests
 - [docs/requirements.md](docs/requirements.md): fields, user stories, pages, validation rules
 
