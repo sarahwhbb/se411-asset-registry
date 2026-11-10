@@ -3,6 +3,7 @@ package edu.psu.se411.backend;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,7 +29,7 @@ public class AssetController {
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
-	public Asset create(@RequestBody Asset asset) {
+	public Asset create(@Valid @RequestBody Asset asset) {
 		return service.create(asset);
 	}
 
@@ -44,7 +45,7 @@ public class AssetController {
 	}
 
 	@PutMapping("/{id}")
-	public Asset update(@PathVariable Long id, @RequestBody Asset asset) {
+	public Asset update(@PathVariable Long id, @Valid @RequestBody Asset asset) {
 		return service.update(id, asset);
 	}
 

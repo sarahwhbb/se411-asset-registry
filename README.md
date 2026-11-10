@@ -90,7 +90,7 @@ AssetController  →  AssetService  →  AssetRepository  →  H2
 Notes:
 
 - Data is lost when the backend stops, and the 6 sample computers in `data.sql` are reloaded on every start.
-- Validation (required fields, unique asset tag, no future purchase date, price above 0) happens in the frontend form only.
+- The backend validates POST and PUT bodies with Bean Validation (required text fields, purchase date required and not in the future, valid status, price above 0) and answers 400 on bad input. The unique asset tag check happens in the frontend form only.
 - `DELETE /api/assets/{id}` goes beyond the four routes in the course brief; it is there so the frontend delete feature works.
 
 Tests (`mvn test` in `backend/`): a JUnit + Mockito test for `AssetService` with the repository mocked, and a `@WebMvcTest` + MockMvc test for `AssetController` with the service mocked.

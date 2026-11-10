@@ -6,6 +6,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PastOrPresent;
 
 @Entity
 public class Asset {
@@ -14,13 +19,22 @@ public class Asset {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	@NotBlank(message = "Asset tag is required")
 	private String assetTag;
+	@NotBlank(message = "Brand is required")
 	private String brand;
+	@NotBlank(message = "Model is required")
 	private String model;
+	@NotBlank(message = "Serial number is required")
 	private String serialNumber;
+	@NotNull(message = "Purchase date is required")
+	@PastOrPresent(message = "Purchase date cannot be in the future")
 	private LocalDate purchaseDate;
+	@Pattern(regexp = "In use|In stock|Repair|Retired", message = "Status must be In use, In stock, Repair or Retired")
 	private String status;
 	private String assignedTo;
+	@NotNull(message = "Price is required")
+	@Positive(message = "Price must be greater than 0")
 	private Double price;
 
 	public Asset() {

@@ -3,6 +3,7 @@ package edu.psu.se411.backend;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -51,6 +52,28 @@ class AssetControllerTest {
 				.andExpect(jsonPath("$.id").value(7))
 				.andExpect(jsonPath("$.assetTag").value("PC-1"))
 				.andExpect(jsonPath("$.purchaseDate").value("2024-01-01"));
+	}
+
+	@Test
+	void postRejectsInvalidInputWith400() throws Exception {
+		String bad = """
+				{"assetTag":"","brand":"Dell","model":"Latitude","serialNumber":"S1",
+				 "purchaseDate":"2999-01-01","status":"Broken","price":-5}""";
+
+		mvc.perform(post("/api/assets").contentType(MediaType.APPLICATION_JSON).content(bad))
+				.andExpect(status().isBadRequest());
+
+		verify(service, never()).create(any(Asset.class));
+	}
+
+	@Test
+	void putRejectsInvalidInputWith400() throws Exception {
+		String bad = JSON.replace("\"brand\":\"Dell\"", "\"brand\":\"  \"");
+
+		mvc.perform(put("/api/assets/1").contentType(MediaType.APPLICATION_JSON).content(bad))
+				.andExpect(status().isBadRequest());
+
+		verify(service, never()).update(eq(1L), any(Asset.class));
 	}
 
 	@Test

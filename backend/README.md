@@ -56,7 +56,7 @@ Field names match the frontend exactly.
 
 `status` is one of In use, In stock, Repair, Retired. `purchaseDate` is `YYYY-MM-DD`. `price` is in SAR. The list response looks like `{ "content": [ ...computers ], "totalPages": 1, ... }`.
 
-The backend does not validate the data (required fields, unique asset tag, future dates, price above 0); the frontend form does.
+POST and PUT bodies are validated with Bean Validation (`@Valid` on the controller, annotations on `Asset`): `assetTag`, `brand`, `model` and `serialNumber` must not be blank, `purchaseDate` is required and not in the future, `status` must be one of the four values, and `price` is required and above 0. Bad input gets 400 Bad Request. The unique asset tag check is done only by the frontend form.
 
 Try it with curl:
 
