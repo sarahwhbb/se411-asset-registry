@@ -48,7 +48,7 @@ npm install
 npm run dev
 ```
 
-The database is in-memory H2, so data is lost when the backend stops. The list starts empty; add computers from the app.
+The database is in-memory H2, so data is lost when the backend stops. `backend/src/main/resources/data.sql` loads 6 sample computers on every start.
 
 Other scripts:
 
@@ -89,7 +89,7 @@ AssetController  →  AssetService  →  AssetRepository  →  H2
 
 Notes:
 
-- Data is lost when the backend stops, and the list starts empty.
+- Data is lost when the backend stops, and the 6 sample computers in `data.sql` are reloaded on every start.
 - Validation (required fields, unique asset tag, no future purchase date, price above 0) happens in the frontend form only.
 - `DELETE /api/assets/{id}` goes beyond the four routes in the course brief; it is there so the frontend delete feature works.
 

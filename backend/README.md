@@ -1,6 +1,6 @@
 # Backend
 
-Spring Boot REST API for the SE411 Computer Asset Registry. It stores computers in an in-memory H2 database, so data is lost when the application stops and the list starts empty.
+Spring Boot REST API for the SE411 Computer Asset Registry. It stores computers in an in-memory H2 database, so data is lost when the application stops. On every start `src/main/resources/data.sql` loads 6 sample computers.
 
 ## Requirements
 
